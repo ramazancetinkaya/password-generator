@@ -41,35 +41,30 @@ document.addEventListener('DOMContentLoaded', function() {
     complexityRadios.forEach(function(radio) {
         radio.addEventListener('change', function() {
             updateCheckboxes(this.value);
+            generatePassword();
         });
+    });
+
+    // Checkbox event listeners
+    [uppercaseCheckbox, lowercaseCheckbox, numbersCheckbox, symbolsCheckbox].forEach(function(checkbox) {
+        checkbox.addEventListener('change', generatePassword);
     });
 
     // Generate Password function
     function generatePassword() {
         const length = lengthInput.value;
-        let includeUppercase, includeLowercase, includeNumbers, includeSymbols;
+        let includeUppercase = uppercaseCheckbox.checked;
+        let includeLowercase = lowercaseCheckbox.checked;
+        let includeNumbers = numbersCheckbox.checked;
+        let includeSymbols = symbolsCheckbox.checked;
 
-        const selectedComplexity = document.querySelector('input[name="complexity"]:checked').value;
-
-        if (selectedComplexity === 'all') {
-            includeUppercase = true;
-            includeLowercase = true;
-            includeNumbers = true;
-            includeSymbols = true;
-        } else if (selectedComplexity === 'easy-to-say') {
-            includeUppercase = true;
-            includeLowercase = true;
-            includeNumbers = false;
-            includeSymbols = false;
-        } else if (selectedComplexity === 'easy-to-read') {
-            includeUppercase = true;
-            includeLowercase = true;
-            includeNumbers = false;
-            includeSymbols = false;
+        // Check that at least one character type is selected
+        if (!includeUppercase && !includeLowercase && !includeNumbers && !includeSymbols) {
+            alert('Please select at least one character type.');
+            return;
         }
 
         const password = generateRandomPassword(length, includeUppercase, includeLowercase, includeNumbers, includeSymbols);
-
         passwordDisplay.value = password;
     }
 
