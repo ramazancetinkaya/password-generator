@@ -1,50 +1,88 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Password Generator</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-</head>
-<body>
+    <link rel="stylesheet" href="style.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"
+    />
+  </head>
+  <body>
     <!--
         Copyright © 2024 Ramazan Çetinkaya (https://github.com/ramazancetinkaya). All rights reserved.
         This is a password generator application created for educational purposes.
         You are free to use and modify this code for your own projects.
     -->
     <div class="container">
-        <div class="password-display">
-            <input type="text" value="Your Generated Password" id="password" readonly>
-            <div class="actions">
-                <button id="copy"><i class="fas fa-copy"></i></button>
-            </div>
+      <div class="password-custom">
+        <input
+          type="text"
+          id="customPassword"
+          placeholder="Enter your password"
+        />
+        <div id="strengthIndicator">
+          Password strength: <span id="strengthLevel">Weak 😭</span>
         </div>
-        
-        <div class="password-settings">
-            <h2>Customize your password</h2>
-            <div class="setting">
-                <label for="length">Password Length</label>
-                <div class="slider-container">
-                    <input type="number" id="length" value="12" min="8" max="32" disabled>
-                    <input type="range" id="slider" min="8" max="32" value="12">
-                </div>
-            </div>
-            <div class="setting">
-                <label><input type="radio" name="complexity" value="all" checked> All characters</label>
-                <label><input type="radio" name="complexity" value="easy-to-say"> Easy to say</label>
-                <label><input type="radio" name="complexity" value="easy-to-read"> Easy to read</label>
-            </div>
-            <div class="setting checkboxes">
-                <label><input type="checkbox" id="uppercase" checked> Uppercase</label>
-                <label><input type="checkbox" id="lowercase" checked> Lowercase</label>
-                <label><input type="checkbox" id="numbers" checked> Numbers</label>
-                <label><input type="checkbox" id="symbols" checked> Symbols</label>
-            </div>
-            <button class="generate-btn">Generate Password</button>
+      </div>
+      <div class="password-display">
+        <input
+          type="text"
+          value="Your Generated Password"
+          id="password"
+          readonly
+        />
+        <div class="actions">
+          <button id="copy"><i class="fas fa-copy"></i></button>
         </div>
+      </div>
+
+      <div class="password-settings">
+        <h2>Customize your password</h2>
+        <div class="setting">
+          <label for="length">Password Length</label>
+          <div class="slider-container">
+            <input
+              type="number"
+              id="length"
+              value="12"
+              min="8"
+              max="32"
+              disabled
+            />
+            <input type="range" id="slider" min="8" max="32" value="12" />
+          </div>
+        </div>
+        <div class="setting">
+          <label
+            ><input type="radio" name="complexity" value="all" checked /> All
+            characters</label
+          >
+          <label
+            ><input type="radio" name="complexity" value="easy-to-say" /> Easy
+            to say</label
+          >
+          <label
+            ><input type="radio" name="complexity" value="easy-to-read" /> Easy
+            to read</label
+          >
+        </div>
+        <div class="setting checkboxes">
+          <label
+            ><input type="checkbox" id="uppercase" checked /> Uppercase</label
+          >
+          <label
+            ><input type="checkbox" id="lowercase" checked /> Lowercase</label
+          >
+          <label><input type="checkbox" id="numbers" checked /> Numbers</label>
+          <label><input type="checkbox" id="symbols" checked /> Symbols</label>
+        </div>
+        <button class="generate-btn">Generate Password</button>
+      </div>
     </div>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
