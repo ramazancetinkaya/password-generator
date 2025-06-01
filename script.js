@@ -639,6 +639,14 @@ document.addEventListener("DOMContentLoaded", function () {
       ) {
         index = array[i + numWords] % selectedWordList.length;
         word = selectedWordList[index];
+
+        // If still duplicate, try one more time with different method
+        if (selectedWords.includes(word)) {
+          const newArray = new Uint8Array(1);
+          window.crypto.getRandomValues(newArray);
+          index = newArray[0] % selectedWordList.length;
+          word = selectedWordList[index];
+        }
       }
 
       if (capFirst) {
@@ -652,14 +660,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Add random number if selected
     if (includeNumber) {
-      const numArray = new Uint8Array(1);
+      const numArray = new Uint8Array(2);
       window.crypto.getRandomValues(numArray);
-      passphrase += numArray[0] % 100;
+      const randomNum = (numArray[0] % 10) * 10 + (numArray[1] % 10); // 0-99
+      passphrase += randomNum;
     }
 
     // Add random symbol if selected
     if (includeSymbol) {
-      const symbols = "!@#$%^&*()-_=+";
+      const symbols = "!@#$%^&*()-_=+[]{}|;:,.<>?/";
       const symArray = new Uint8Array(1);
       window.crypto.getRandomValues(symArray);
       passphrase += symbols[symArray[0] % symbols.length];
@@ -807,20 +816,53 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
-    // Calculate entropy based on dictionary size and number of words
-    const entropy = numWords * Math.log2(dictionarySize);
-    const uniqueness = Math.pow(2, entropy);
+    // Base entropy calculation for word selection
+    let baseEntropy = numWords * Math.log2(dictionarySize);
 
-    let strength = getStrengthLevel(entropy);
+    // Factors that influence total entropy
+    const useCapitalization = capitalizeFirst.checked;
+    const useNumber = addNumber.checked;
+    const useSymbol = addSymbol.checked;
+    const separatorEntropy = separator.value === " " ? 0 : Math.log2(10); // 10 different separators
+
+    // Additional entropy from options
+    let additionalEntropy = 0;
+
+    // Capitalization adds 1 bit per word (2 options per word)
+    if (useCapitalization) {
+      additionalEntropy += numWords * 1;
+    }
+
+    // Number adds ~6.64 bits (100 options)
+    if (useNumber) {
+      additionalEntropy += Math.log2(100);
+    }
+
+    // Symbol adds ~4.7 bits (26 symbols)
+    if (useSymbol) {
+      additionalEntropy += Math.log2(26);
+    }
+
+    // Separator adds entropy only if not using space (default)
+    additionalEntropy += separatorEntropy;
+
+    // Total entropy
+    const totalEntropy = baseEntropy + additionalEntropy;
+
+    // Uniqueness (possible combinations)
+    const uniqueness = Math.pow(2, totalEntropy);
+
+    // Calculate strength
+    let strength = getStrengthLevel(totalEntropy);
 
     // Update UI
-    passphraseEntropy.textContent = `${entropy.toFixed(2)} bits`;
+    passphraseEntropy.textContent = `${totalEntropy.toFixed(2)} bits`;
     passphraseUniqueness.textContent = `1 in ${formatExponential(uniqueness)}`;
     passphraseStrengthValue.textContent = strength.label;
     passphraseStrengthValue.style.backgroundColor = strength.color;
     passphraseStrengthProgress.style.width = `${Math.min(
       100,
-      (entropy / 128) * 100
+      (totalEntropy / 128) * 100
     )}%`;
     passphraseStrengthProgress.style.backgroundColor = strength.color;
   }
@@ -875,8 +917,10 @@ document.addEventListener("DOMContentLoaded", function () {
       return { label: "Strong", color: "#2ecc71" };
     } else if (entropy < 100) {
       return { label: "Very Strong", color: "#27ae60" };
-    } else {
+    } else if (entropy < 128) {
       return { label: "Excellent", color: "#16a085" };
+    } else {
+      return { label: "Unbreakable", color: "#2980b9" };
     }
   }
 
@@ -928,6 +972,16 @@ document.addEventListener("DOMContentLoaded", function () {
       { value: 1e27, label: "octillion" },
       { value: 1e30, label: "nonillion" },
       { value: 1e33, label: "decillion" },
+      { value: 1e36, label: "undecillion" },
+      { value: 1e39, label: "duodecillion" },
+      { value: 1e42, label: "tredecillion" },
+      { value: 1e45, label: "quattuordecillion" },
+      { value: 1e48, label: "quindecillion" },
+      { value: 1e51, label: "sexdecillion" },
+      { value: 1e54, label: "septendecillion" },
+      { value: 1e57, label: "octodecillion" },
+      { value: 1e60, label: "novemdecillion" },
+      { value: 1e63, label: "vigintillion" },
     ];
 
     // If number is less than 1000, just format it
