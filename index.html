@@ -1,0 +1,1592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>mypass - Modern Password Generator</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-color: #fafbfc;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --accent: #4f46e5;
+            --accent-hover: #4338ca;
+            --accent-light: #e0e7ff;
+            --border-color: #e2e8f0;
+            --border-hover: #cbd5e1;
+            --input-bg: #ffffff;
+            --tab-active-bg: #ffffff;
+            --tab-bar-bg: #f1f5f9;
+            
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 12px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
+            --shadow-lg: 0 12px 24px -4px rgba(15, 23, 42, 0.06), 0 4px 12px -2px rgba(15, 23, 42, 0.04);
+            --shadow-focus: 0 0 0 3px rgba(79, 70, 229, 0.18);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+        }
+
+        *::-webkit-scrollbar {
+            display: none;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .app-wrapper {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 520px;
+            padding: 2.5rem 1.25rem;
+            transition: padding 0.3s ease;
+        }
+
+        .mypass-app {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 0.3s ease, filter 0.3s ease;
+        }
+
+        .mypass-app.promo-locked {
+            opacity: 0.45;
+            filter: grayscale(15%);
+            pointer-events: none;
+        }
+
+        .brand-logo {
+            font-size: clamp(1.75rem, 5vw, 2.15rem);
+            font-weight: 500;
+            letter-spacing: -0.04em;
+            color: var(--text-primary);
+            margin-bottom: clamp(1.5rem, 5vw, 2.25rem);
+            user-select: none;
+        }
+
+        .brand-logo span {
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .tab-navigation {
+            width: 100%;
+            background-color: var(--tab-bar-bg);
+            padding: 0.25rem;
+            border-radius: 14px;
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 1.25rem;
+            border: 1px solid rgba(0, 0, 0, 0.01);
+            position: relative;
+        }
+
+        .tab-trigger {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: clamp(0.65rem, 2vw, 0.8rem) 0.5rem;
+            font-size: clamp(0.75rem, 2vw, 0.825rem);
+            font-weight: 600;
+            color: var(--text-secondary);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .tab-trigger:hover {
+            color: var(--text-primary);
+        }
+
+        .tab-trigger:focus-visible {
+            box-shadow: var(--shadow-focus);
+        }
+
+        .tab-trigger.active {
+            background-color: var(--tab-active-bg);
+            color: var(--text-primary);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .password-display-wrapper {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: clamp(0.95rem, 3vw, 1.2rem) clamp(1.1rem, 3.5vw, 1.4rem);
+            box-shadow: var(--shadow-sm);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.15s ease;
+            position: relative;
+        }
+
+        .password-display-wrapper:hover {
+            border-color: var(--border-hover);
+        }
+
+        .password-display-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: var(--shadow-md), var(--shadow-focus);
+        }
+
+        .password-display-wrapper.pulse {
+            transform: scale(0.99);
+        }
+
+        .password-input {
+            flex-grow: 1;
+            border: none;
+            background: transparent;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: clamp(1.2rem, 4.5vw, 1.45rem);
+            font-weight: 600;
+            color: var(--text-primary);
+            overflow-x: auto;
+            white-space: nowrap;
+            padding-right: 1.25rem;
+            letter-spacing: 0.02em;
+            cursor: grab;
+            user-select: text;
+            word-break: keep-all;
+        }
+
+        .password-input.grabbing {
+            cursor: grabbing;
+            user-select: none;
+        }
+
+        .action-button-group {
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            width: 42px;
+            height: 42px;
+            border-radius: 11px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease, transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+            font-size: 1.05rem;
+        }
+
+        .icon-btn:hover {
+            background-color: var(--tab-bar-bg);
+            color: var(--text-primary);
+        }
+
+        .icon-btn:focus-visible {
+            box-shadow: var(--shadow-focus);
+            background-color: var(--tab-bar-bg);
+        }
+
+        .icon-btn:active {
+            transform: scale(0.93);
+        }
+
+        .display-meta-row {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.8rem;
+            padding: 0 0.5rem;
+            user-select: none;
+        }
+
+        .advice-caption {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            line-height: 1.4;
+            letter-spacing: 0.01em;
+            flex: 1;
+        }
+
+        .shortcut-tip {
+            font-size: 0.725rem;
+            color: var(--text-muted);
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 0.35rem;
+            background-color: var(--tab-bar-bg);
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+            transition: all 0.2s ease;
+        }
+
+        .shortcut-tip kbd {
+            font-family: inherit;
+            background-color: var(--input-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 0.05rem 0.25rem;
+            font-weight: 700;
+            font-size: 0.675rem;
+            box-shadow: 0 1px 0 rgba(0,0,0,0.05);
+        }
+
+        .customizer-panel {
+            width: 100%;
+            display: grid;
+            grid-template-rows: 0fr;
+            transition: grid-template-rows 0.35s cubic-bezier(0.16, 1, 0.3, 1), margin-top 0.3s ease, opacity 0.3s ease;
+            opacity: 0;
+            overflow: hidden;
+        }
+
+        .customizer-panel.visible {
+            grid-template-rows: 1fr;
+            opacity: 1;
+            margin-top: 1.25rem;
+        }
+
+        .customizer-inner {
+            min-height: 0;
+        }
+
+        .settings-card {
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: clamp(1.15rem, 3.5vw, 1.5rem);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .slider-section {
+            margin-bottom: 1.35rem;
+        }
+
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+
+        .slider-value-badge {
+            background-color: var(--accent-light);
+            color: var(--accent);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 0.825rem;
+        }
+
+        .range-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            border-radius: 99px;
+            background: var(--tab-bar-bg);
+            outline: none;
+            transition: background 0.2s;
+        }
+
+        .range-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+        }
+
+        .range-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.12);
+        }
+
+        .range-slider::-webkit-slider-thumb:active {
+            transform: scale(1.05);
+            background: var(--accent-hover);
+        }
+
+        .range-slider::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border: none;
+            border-radius: 50%;
+            background: var(--accent);
+            cursor: pointer;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.15s ease;
+        }
+
+        .range-slider::-moz-range-thumb:hover {
+            transform: scale(1.15);
+            box-shadow: 0 0 0 5px rgba(79, 70, 229, 0.12);
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.85rem;
+            margin-bottom: 1.15rem;
+        }
+
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding-left: 1.85rem;
+            cursor: pointer;
+            font-size: 0.825rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            user-select: none;
+            transition: color 0.2s ease;
+        }
+
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+
+        .custom-checkmark {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            transform: translateY(-50%);
+            height: 1.2rem;
+            width: 1.2rem;
+            background-color: var(--tab-bar-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .checkbox-container:hover input ~ .custom-checkmark {
+            background-color: #e2e8f0;
+            border-color: #cbd5e1;
+        }
+
+        .checkbox-container input:checked ~ .custom-checkmark {
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .custom-checkmark:after {
+            content: "";
+            position: absolute;
+            display: none;
+        }
+
+        .checkbox-container input:checked ~ .custom-checkmark:after {
+            display: block;
+        }
+
+        .checkbox-container .custom-checkmark:after {
+            left: 5px;
+            top: 2px;
+            width: 4px;
+            height: 7px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+        }
+
+        .checkbox-container input:focus-visible ~ .custom-checkmark {
+            box-shadow: var(--shadow-focus);
+        }
+
+        .divider {
+            height: 1px;
+            background-color: var(--border-color);
+            margin: 1.15rem 0;
+        }
+
+        .toast-holder {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.65rem;
+            pointer-events: none;
+            max-width: 350px;
+            width: calc(100% - 4rem);
+        }
+
+        .custom-toast {
+            background-color: #ffffff;
+            color: var(--text-primary);
+            padding: 0.85rem 1.15rem;
+            border-radius: 12px;
+            font-size: 0.825rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            box-shadow: var(--shadow-lg), 0 0 0 1px rgba(15, 23, 42, 0.02);
+            transform: translateY(1.5rem) scale(0.95);
+            opacity: 0;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+            pointer-events: auto;
+        }
+
+        .custom-toast.visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        .custom-toast.info {
+            background-color: #f8fafc;
+            border-left: 4px solid #64748b;
+            color: #334155;
+        }
+        
+        .custom-toast.info i {
+            color: #64748b;
+        }
+
+        .custom-toast.success {
+            background-color: #f0fdf4;
+            border-left: 4px solid #10b981;
+            color: #14532d;
+        }
+        
+        .custom-toast.success i {
+            color: #10b981;
+        }
+
+        .custom-toast.error {
+            background-color: #fef2f2;
+            border-left: 4px solid #ef4444;
+            color: #7f1d1d;
+        }
+        
+        .custom-toast.error i {
+            color: #ef4444;
+        }
+
+        .promo-card {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            background-color: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-lg);
+            width: 360px;
+            max-width: calc(100% - 4rem);
+            z-index: 9995;
+            display: flex;
+            align-items: flex-start;
+            gap: 1rem;
+            transform: translateY(1.5rem) scale(0.95);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+        }
+
+        .promo-card.visible {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .promo-close {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: color 0.2s, background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+        }
+
+        .promo-close:hover {
+            color: var(--text-primary);
+            background-color: var(--tab-bar-bg);
+        }
+
+        .promo-content {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+            padding-right: 0.75rem;
+        }
+
+        .promo-icon {
+            background-color: var(--accent-light);
+            color: var(--accent);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            font-size: 1rem;
+        }
+
+        .promo-text-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .promo-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .promo-desc {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .promo-desc a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 1.5px solid var(--accent-light);
+            transition: color 0.15s ease, border-color 0.15s ease;
+        }
+
+        .promo-desc a:hover {
+            color: var(--accent-hover);
+            border-color: var(--accent);
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(15, 23, 42, 0.25);
+            backdrop-filter: blur(2px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-body {
+            background-color: var(--input-bg);
+            border-radius: 18px;
+            padding: 1.75rem;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: var(--shadow-lg);
+            transform: scale(0.96);
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-overlay.open .modal-body {
+            transform: scale(1);
+        }
+
+        .modal-headline {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.65rem;
+        }
+
+        .modal-text {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-controls {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .modal-dismiss-btn {
+            background-color: var(--accent);
+            color: #ffffff;
+            border: none;
+            padding: 0.6rem 1.15rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.825rem;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .modal-dismiss-btn:hover {
+            background-color: var(--accent-hover);
+        }
+
+        .copyright-footer {
+            font-size: 0.725rem;
+            color: var(--text-muted);
+            padding: 1.5rem;
+            width: 100%;
+            text-align: center;
+            user-select: none;
+            letter-spacing: 0.01em;
+            transition: opacity 0.3s ease;
+        }
+
+        .copyright-footer.promo-locked {
+            opacity: 0.45;
+        }
+
+        .copyright-footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.2s ease;
+        }
+
+        .copyright-footer a:hover {
+            color: var(--accent);
+        }
+
+        @media (max-width: 600px) {
+            .toast-holder {
+                bottom: 1.25rem;
+                left: 50%;
+                right: auto;
+                transform: translateX(-50%);
+                width: calc(100% - 2rem);
+                max-width: 440px;
+                align-items: center;
+            }
+            .custom-toast {
+                width: 100%;
+                transform: translateY(1rem) scale(0.97);
+            }
+            .custom-toast.visible {
+                transform: translateY(0) scale(1);
+            }
+            .promo-card {
+                bottom: 1rem;
+                left: 1rem;
+                right: 1rem;
+                max-width: calc(100% - 2rem);
+                width: auto;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .app-wrapper {
+                padding: 1.5rem 0.85rem;
+            }
+            .brand-logo {
+                margin-bottom: 1.25rem;
+            }
+            .tab-navigation {
+                border-radius: 11px;
+                padding: 0.2rem;
+            }
+            .tab-trigger {
+                font-size: 0.725rem;
+                padding: 0.6rem 0.15rem;
+            }
+            .password-display-wrapper {
+                padding: 0.85rem 1rem;
+                border-radius: 12px;
+            }
+            .display-meta-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+                padding: 0 0.25rem;
+            }
+            .shortcut-tip {
+                align-self: flex-start;
+            }
+            .options-grid {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+            .settings-card {
+                padding: 1.1rem;
+                border-radius: 12px;
+            }
+        }
+
+        @media (max-width: 320px) {
+            .tab-trigger {
+                font-size: 0.65rem;
+                padding: 0.5rem 0.1rem;
+            }
+            .brand-logo {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-wrapper">
+        <main class="mypass-app">
+            
+            <h1 class="brand-logo" id="logo">my<span>pass</span></h1>
+
+            <nav class="tab-navigation" role="tablist">
+                <button class="tab-trigger" id="tab-legacy" role="tab">Legacy (8)</button>
+                <button class="tab-trigger active" id="tab-standard" role="tab">Standard (12)</button>
+                <button class="tab-trigger" id="tab-recommend" role="tab">Recommend (16)</button>
+                <button class="tab-trigger" id="tab-custom" role="tab">Custom</button>
+            </nav>
+
+            <div class="password-display-wrapper" id="display-wrapper">
+                <input type="text" id="password-input" class="password-input" readonly value="" placeholder="Generating...">
+                <div class="action-button-group">
+                    <button class="icon-btn" id="btn-refresh" title="Regenerate Password (Press R)"><i class="fas fa-rotate"></i></button>
+                    <button class="icon-btn" id="btn-copy" title="Copy to Clipboard"><i class="far fa-copy"></i></button>
+                </div>
+            </div>
+
+            <div class="display-meta-row">
+                <p class="advice-caption">Using unique passwords for every application and website is highly recommended.</p>
+                <span class="shortcut-tip"><i class="fa-regular fa-keyboard"></i> Press <kbd>R</kbd> to regenerate</span>
+            </div>
+
+            <section class="customizer-panel" id="customizer">
+                <div class="customizer-inner">
+                    <div class="settings-card">
+                        <div class="slider-section">
+                            <div class="slider-header">
+                                <span>Password Length</span>
+                                <span class="slider-value-badge" id="length-val">16</span>
+                            </div>
+                            <input type="range" id="length-slider" class="range-slider" min="8" max="64" value="16">
+                        </div>
+
+                        <div class="options-grid">
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="cb-upper" checked>
+                                <span class="custom-checkmark"></span>
+                                Uppercase Letters (A-Z)
+                            </label>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="cb-lower" checked>
+                                <span class="custom-checkmark"></span>
+                                Lowercase Letters (a-z)
+                            </label>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="cb-numbers" checked>
+                                <span class="custom-checkmark"></span>
+                                Include Numbers (0-9)
+                            </label>
+                            <label class="checkbox-container">
+                                <input type="checkbox" id="cb-symbols" checked>
+                                <span class="custom-checkmark"></span>
+                                Include Symbols
+                            </label>
+                        </div>
+
+                        <div class="divider"></div>
+
+                        <div class="extra-options">
+                            <label class="checkbox-container" style="margin-bottom: 0.35rem;">
+                                <input type="checkbox" id="cb-ambiguous">
+                                <span class="custom-checkmark"></span>
+                                Avoid Ambiguous Characters
+                            </label>
+                            <span class="ambiguous-helper-text" style="display: block; font-size: 0.725rem; color: var(--text-muted); padding-left: 1.85rem; line-height: 1.45; user-select: none;">
+                                Filters out visually similar characters: 
+                                <code style="font-family: 'JetBrains Mono', monospace; background-color: var(--tab-bar-bg); padding: 0.05rem 0.25rem; border-radius: 4px; font-weight: 600; color: var(--text-secondary);">1</code>, 
+                                <code style="font-family: 'JetBrains Mono', monospace; background-color: var(--tab-bar-bg); padding: 0.05rem 0.25rem; border-radius: 4px; font-weight: 600; color: var(--text-secondary);">l</code>, 
+                                <code style="font-family: 'JetBrains Mono', monospace; background-color: var(--tab-bar-bg); padding: 0.05rem 0.25rem; border-radius: 4px; font-weight: 600; color: var(--text-secondary);">I</code>, 
+                                <code style="font-family: 'JetBrains Mono', monospace; background-color: var(--tab-bar-bg); padding: 0.05rem 0.25rem; border-radius: 4px; font-weight: 600; color: var(--text-secondary);">0</code>, 
+                                <code style="font-family: 'JetBrains Mono', monospace; background-color: var(--tab-bar-bg); padding: 0.05rem 0.25rem; border-radius: 4px; font-weight: 600; color: var(--text-secondary);">O</code>, 
+                                <code style="font-family: 'JetBrains Mono', monospace; background-color: var(--tab-bar-bg); padding: 0.05rem 0.25rem; border-radius: 4px; font-weight: 600; color: var(--text-secondary);">o</code>, 
+                                <code style="font-family: 'JetBrains Mono', monospace; background-color: var(--tab-bar-bg); padding: 0.05rem 0.25rem; border-radius: 4px; font-weight: 600; color: var(--text-secondary);">|</code>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <div class="promo-card" id="promo-card">
+        <button class="promo-close" id="promo-close" title="Close Notification"><i class="fas fa-xmark"></i></button>
+        <div class="promo-content">
+            <div class="promo-icon"><i class="fa-solid fa-star"></i></div>
+            <div class="promo-text-wrapper">
+                <h4 class="promo-title">Thank you for using mypass!</h4>
+                <p class="promo-desc">
+                    We are glad you trust us to secure your unique credentials. If you would like to support our efforts, consider leaving a star on our <a href="https://github.com/ramazancetinkaya/password-generator" target="_blank" rel="noopener noreferrer">repository</a>! ⭐
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-holder" id="toast-container"></div>
+
+    <div class="modal-overlay" id="custom-modal">
+        <div class="modal-body">
+            <h3 class="modal-headline" id="modal-headline">Notification</h3>
+            <p class="modal-text" id="modal-text">Content goes here.</p>
+            <div class="modal-controls">
+                <button class="modal-dismiss-btn" id="modal-ok-btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <footer class="copyright-footer" id="copyright-footer">
+        &copy; 2026 mypass. Developed by <a href="https://github.com/ramazancetinkaya" target="_blank" rel="noopener noreferrer">ramazancetinkaya</a>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const LOWER = "abcdefghijklmnopqrstuvwxyz";
+            const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            const NUMS = "0123456789";
+            const SAFE_SYMBOLS = "!@#$%^&*()_+-=[]{}";
+            const EXT_SYMBOLS = "|;:,.?/~<>";
+            const AMBIGUOUS = ['1', 'l', 'I', '0', 'O', 'o', '|'];
+
+            const QWERTY_KEYS = [
+                "1234567890",
+                "qwertyuiop",
+                "asdfghjkl",
+                "zxcvbnm"
+            ];
+
+            let legacyPatternsHistory = [];
+            let currentMode = 'standard';
+            let isPromoActive = false;
+
+            const mypassApp = document.querySelector('.mypass-app');
+            const copyrightFooter = document.getElementById('copyright-footer');
+            const passwordInput = document.getElementById('password-input');
+            const displayWrapper = document.getElementById('display-wrapper');
+            const btnCopy = document.getElementById('btn-copy');
+            const btnRefresh = document.getElementById('btn-refresh');
+            const customizerPanel = document.getElementById('customizer');
+            
+            const promoCard = document.getElementById('promo-card');
+            const promoClose = document.getElementById('promo-close');
+            
+            const tabs = {
+                legacy: document.getElementById('tab-legacy'),
+                standard: document.getElementById('tab-standard'),
+                recommend: document.getElementById('tab-recommend'),
+                custom: document.getElementById('tab-custom')
+            };
+
+            const lengthSlider = document.getElementById('length-slider');
+            const lengthVal = document.getElementById('length-val');
+            const cbUpper = document.getElementById('cb-upper');
+            const cbLower = document.getElementById('cb-lower');
+            const cbNumbers = document.getElementById('cb-numbers');
+            const cbSymbols = document.getElementById('cb-symbols');
+            const cbAmbiguous = document.getElementById('cb-ambiguous');
+
+            function getSecureRandomInt(max) {
+                if (max <= 1) return 0;
+                const arr = new Uint32Array(1);
+                const maxSafe = 4294967296 - (4294967296 % max);
+                do {
+                    window.crypto.getRandomValues(arr);
+                } while (arr[0] >= maxSafe);
+                return arr[0] % max;
+            }
+
+            function getRandomChar(pool) {
+                if (!pool || pool.length === 0) return '';
+                return pool.charAt(getSecureRandomInt(pool.length));
+            }
+
+            function getSecureUniqueChar(pool, usedSet) {
+                let available = "";
+                for (let i = 0; i < pool.length; i++) {
+                    const char = pool.charAt(i);
+                    if (!usedSet.has(char)) {
+                        available += char;
+                    }
+                }
+                if (available.length === 0) {
+                    available = pool;
+                }
+                const chosen = getRandomChar(available);
+                usedSet.add(chosen);
+                return chosen;
+            }
+
+            function secureShuffle(array) {
+                const res = [...array];
+                for (let i = res.length - 1; i > 0; i--) {
+                    const j = getSecureRandomInt(i + 1);
+                    const temp = res[i];
+                    res[i] = res[j];
+                    res[j] = temp;
+                }
+                return res;
+            }
+
+            function getCharType(c) {
+                if (LOWER.includes(c)) return 'L';
+                if (UPPER.includes(c)) return 'U';
+                if (NUMS.includes(c)) return 'N';
+                return 'S';
+            }
+
+            function areKeysAdjacent(charA, charB) {
+                const a = charA.toLowerCase();
+                const b = charB.toLowerCase();
+                let rowA = -1, colA = -1;
+                let rowB = -1, colB = -1;
+
+                for (let r = 0; r < QWERTY_KEYS.length; r++) {
+                    const idxA = QWERTY_KEYS[r].indexOf(a);
+                    if (idxA !== -1) { rowA = r; colA = idxA; }
+                    const idxB = QWERTY_KEYS[r].indexOf(b);
+                    if (idxB !== -1) { rowB = r; colB = idxB; }
+                }
+
+                if (rowA !== -1 && rowB !== -1) {
+                    return Math.abs(rowA - rowB) <= 1 && Math.abs(colA - colB) <= 1;
+                }
+                return false;
+            }
+
+            // --- LEGACY PASSWORDS ALGORITHM (STRICT 8 CHARACTERS) ---
+            function generateLegacyPassword() {
+                try {
+                    const usedSet = new Set();
+                    
+                    /* Requirement: exactly 8 characters, maximum repetition is strictly 1 (completely unique characters) */
+                    const lowers = Array.from({length: 2}, () => getSecureUniqueChar(LOWER, usedSet));
+                    const uppers = Array.from({length: 2}, () => getSecureUniqueChar(UPPER, usedSet));
+                    const nums = Array.from({length: 2}, () => getSecureUniqueChar(NUMS, usedSet));
+                    
+                    const pool = LOWER + UPPER + NUMS;
+                    const extras = Array.from({length: 2}, () => getSecureUniqueChar(pool, usedSet));
+
+                    let characters = [...lowers, ...uppers, ...nums, ...extras];
+                    let shuffled = secureShuffle(characters);
+
+                    let currentPattern = shuffled.map(c => getCharType(c)).join('-');
+
+                    /* Predictability Check: Compare sequential types against history to block layout habits */
+                    const triggersPatternReset = legacyPatternsHistory.some(prevPattern => {
+                        let matches = 0;
+                        const p1 = prevPattern.split('-');
+                        const p2 = currentPattern.split('-');
+                        for (let i = 0; i < 8; i++) {
+                            if (p1[i] === p2[i]) matches++;
+                        }
+                        return matches >= 5;
+                    });
+
+                    const startsWithDigit = NUMS.includes(shuffled[0]);
+
+                    /* Restructuring Guard: Forces a strict alternating alpha-numeric matrix sequence on match triggers */
+                    if (triggersPatternReset || startsWithDigit) {
+                        const alternatingUsedSet = new Set();
+                        const alternating = [];
+                        const coinFlip = getSecureRandomInt(2) === 0;
+
+                        for (let i = 0; i < 8; i++) {
+                            if (i % 2 === 0) {
+                                alternating.push(getSecureUniqueChar(coinFlip ? (i % 4 === 0 ? UPPER : LOWER) : (i % 4 === 0 ? LOWER : UPPER), alternatingUsedSet));
+                            } else {
+                                alternating.push(getSecureUniqueChar(NUMS, alternatingUsedSet));
+                            }
+                        }
+                        shuffled = alternating;
+                        currentPattern = shuffled.map(c => getCharType(c)).join('-');
+                    }
+
+                    legacyPatternsHistory.push(currentPattern);
+                    if (legacyPatternsHistory.length > 5) legacyPatternsHistory.shift();
+
+                    return shuffled.join('');
+                } catch (e) {
+                    return fallbackLegacy();
+                }
+            }
+
+            function fallbackLegacy() {
+                const usedSet = new Set();
+                const l = Array.from({length: 2}, () => getSecureUniqueChar(LOWER, usedSet));
+                const u = Array.from({length: 2}, () => getSecureUniqueChar(UPPER, usedSet));
+                const n = Array.from({length: 2}, () => getSecureUniqueChar(NUMS, usedSet));
+                const pool = LOWER + UPPER + NUMS;
+                const e = Array.from({length: 2}, () => getSecureUniqueChar(pool, usedSet));
+                return secureShuffle([...l, ...u, ...n, ...e]).join('');
+            }
+
+            // --- STANDARD PASSWORDS ALGORITHM (STRICT 12 CHARACTERS) ---
+            function generateStandardPassword() {
+                try {
+                    const usedSet = new Set();
+                    
+                    /* Requirement: exactly 12 characters, safe symbols only, 100% unique character limits */
+                    const lowers = Array.from({length: 2}, () => getSecureUniqueChar(LOWER, usedSet));
+                    const uppers = Array.from({length: 2}, () => getSecureUniqueChar(UPPER, usedSet));
+                    const nums = Array.from({length: 3}, () => getSecureUniqueChar(NUMS, usedSet));
+                    const symbols = Array.from({length: 3}, () => getSecureUniqueChar(SAFE_SYMBOLS, usedSet));
+                    
+                    const pool = LOWER + UPPER + NUMS + SAFE_SYMBOLS;
+                    const extras = Array.from({length: 2}, () => getSecureUniqueChar(pool, usedSet));
+
+                    let characters = [...lowers, ...uppers, ...nums, ...symbols, ...extras];
+                    let shuffled = secureShuffle(characters);
+
+                    let iterations = 0;
+                    let hasViolation = true;
+
+                    /* Rejection Loop: Scans adjacency and type clustering structures */
+                    while (hasViolation && iterations < 150) {
+                        hasViolation = false;
+                        iterations++;
+
+                        /* Break up QWERTY keyboard adjacent keys */
+                        for (let i = 0; i < shuffled.length - 1; i++) {
+                            if (areKeysAdjacent(shuffled[i], shuffled[i+1])) {
+                                hasViolation = true;
+                                break;
+                            }
+                        }
+
+                        /* Break up excessive contiguous character class clumping (max 2 consecutive types) */
+                        if (!hasViolation) {
+                            for (let i = 0; i < shuffled.length - 2; i++) {
+                                const t1 = getCharType(shuffled[i]);
+                                const t2 = getCharType(shuffled[i+1]);
+                                const t3 = getCharType(shuffled[i+2]);
+                                if (t1 === t2 && t2 === t3) {
+                                    hasViolation = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (hasViolation) {
+                            shuffled = secureShuffle(shuffled);
+                        }
+                    }
+
+                    /* Dynamic Shift Fallback: Forces absolute, un-clumped array structure if randomization loops timeout */
+                    if (hasViolation) {
+                        const extraLowers = extras.filter(c => getCharType(c) === 'L');
+                        const extraUppers = extras.filter(c => getCharType(c) === 'U');
+                        const extraNums = extras.filter(c => getCharType(c) === 'N');
+                        const extraSymbols = extras.filter(c => getCharType(c) === 'S');
+
+                        const remExtras = [...extraLowers, ...extraUppers, ...extraNums, ...extraSymbols];
+
+                        shuffled = [
+                            lowers[0], uppers[0], nums[0], symbols[0],
+                            lowers[1], uppers[1], nums[1], symbols[1],
+                            nums[2], symbols[2],
+                            remExtras[0] || getRandomChar(LOWER),
+                            remExtras[1] || getRandomChar(UPPER)
+                        ];
+                    }
+
+                    return shuffled.join('');
+                } catch (e) {
+                    return fallbackStandard();
+                }
+            }
+
+            function fallbackStandard() {
+                const usedSet = new Set();
+                const l = Array.from({length: 2}, () => getSecureUniqueChar(LOWER, usedSet));
+                const u = Array.from({length: 2}, () => getSecureUniqueChar(UPPER, usedSet));
+                const n = Array.from({length: 3}, () => getSecureUniqueChar(NUMS, usedSet));
+                const s = Array.from({length: 3}, () => getSecureUniqueChar(SAFE_SYMBOLS, usedSet));
+                const pool = LOWER + UPPER + NUMS + SAFE_SYMBOLS;
+                const e = Array.from({length: 2}, () => getSecureUniqueChar(pool, usedSet));
+                return secureShuffle([...l, ...u, ...n, ...s, ...e]).join('');
+            }
+
+            // --- RECOMMEND PASSWORDS ALGORITHM (STRICT 16 CHARACTERS) ---
+            function generateRecommendPassword() {
+                try {
+                    const usedSet = new Set();
+                    const combinedSymbols = SAFE_SYMBOLS + EXT_SYMBOLS;
+
+                    /* Requirement: exactly 16 characters, all symbol sets, 100% unique elements */
+                    const lowers = Array.from({length: 4}, () => getSecureUniqueChar(LOWER, usedSet));
+                    const uppers = Array.from({length: 4}, () => getSecureUniqueChar(UPPER, usedSet));
+                    const nums = Array.from({length: 3}, () => getSecureUniqueChar(NUMS, usedSet));
+                    const symbols = Array.from({length: 3}, () => getSecureUniqueChar(combinedSymbols, usedSet));
+
+                    /* Dynamic high-entropy weighting to favor numeric/symbol indices over basic alphabetic setups */
+                    const isHighEntropy = getSecureRandomInt(10) < 7;
+                    const extraPool = isHighEntropy ? (NUMS + combinedSymbols) : (LOWER + UPPER);
+                    const extras = Array.from({length: 2}, () => getSecureUniqueChar(extraPool, usedSet));
+
+                    let characters = [...lowers, ...uppers, ...nums, ...symbols, ...extras];
+                    let shuffled = secureShuffle(characters);
+
+                    /* Scan layout for excessive contiguous letter blocks */
+                    let consecutiveLettersCount = 0;
+                    let maxConsecutiveLetters = 0;
+                    for (let i = 0; i < shuffled.length; i++) {
+                        const type = getCharType(shuffled[i]);
+                        if (type === 'L' || type === 'U') {
+                            consecutiveLettersCount++;
+                            if (consecutiveLettersCount > maxConsecutiveLetters) {
+                                maxConsecutiveLetters = consecutiveLettersCount;
+                            }
+                        } else {
+                            consecutiveLettersCount = 0;
+                        }
+                    }
+
+                    /* Scan layout for boundary-clumped numerical or symbolic sets */
+                    let elementsOnBoundaries = 0;
+                    for (let i = 0; i < shuffled.length; i++) {
+                        const type = getCharType(shuffled[i]);
+                        if (type === 'N' || type === 'S') {
+                            if (i <= 2 || i >= 13) elementsOnBoundaries++;
+                        }
+                    }
+
+                    /* Mask Attack Shield: Forces complex symbols and digits to outer limits and core center nodes to break predictive models */
+                    if (maxConsecutiveLetters > 3 || elementsOnBoundaries > 5) {
+                        const structured = new Array(16);
+                        const edgeCenterIndices = [0, 1, 7, 8, 14, 15];
+                        const letterIndices = [2, 3, 4, 5, 6, 9, 10, 11, 12, 13];
+
+                        const mixedSymbolsNums = secureShuffle([...nums, ...symbols]);
+                        const mixedLetters = secureShuffle([...lowers, ...uppers, ...extras]);
+
+                        edgeCenterIndices.forEach((idx, i) => {
+                            structured[idx] = mixedSymbolsNums[i];
+                        });
+
+                        letterIndices.forEach((idx, i) => {
+                            structured[idx] = mixedLetters[i];
+                        });
+
+                        shuffled = structured;
+                    }
+
+                    return shuffled.join('');
+                } catch (e) {
+                    return fallbackRecommend();
+                }
+            }
+
+            function fallbackRecommend() {
+                const usedSet = new Set();
+                const l = Array.from({length: 4}, () => getSecureUniqueChar(LOWER, usedSet));
+                const u = Array.from({length: 4}, () => getSecureUniqueChar(UPPER, usedSet));
+                const n = Array.from({length: 3}, () => getSecureUniqueChar(NUMS, usedSet));
+                const combinedSymbols = SAFE_SYMBOLS + EXT_SYMBOLS;
+                const s = Array.from({length: 3}, () => getSecureUniqueChar(combinedSymbols, usedSet));
+                const pool = LOWER + UPPER + NUMS + combinedSymbols;
+                const e = Array.from({length: 2}, () => getSecureUniqueChar(pool, usedSet));
+                return secureShuffle([...l, ...u, ...n, ...s, ...e]).join('');
+            }
+
+            // --- CUSTOM PASSWORDS ALGORITHM (8 TO 64 CHARACTERS) ---
+            function generateCustomPassword() {
+                const len = parseInt(lengthSlider.value);
+                const hasUpper = cbUpper.checked;
+                const hasLower = cbLower.checked;
+                const hasNumbers = cbNumbers.checked;
+                const hasSymbols = cbSymbols.checked;
+                const filterAmbiguity = cbAmbiguous.checked;
+
+                let mergedPool = "";
+                const subsets = [];
+
+                /* Build selective pools and sanitize visually overlapping ambiguity patterns */
+                if (hasLower) {
+                    let chars = LOWER;
+                    if (filterAmbiguity) {
+                        chars = chars.split('').filter(c => !AMBIGUOUS.includes(c)).join('');
+                    }
+                    mergedPool += chars;
+                    subsets.push(chars);
+                }
+                if (hasUpper) {
+                    let chars = UPPER;
+                    if (filterAmbiguity) {
+                        chars = chars.split('').filter(c => !AMBIGUOUS.includes(c)).join('');
+                    }
+                    mergedPool += chars;
+                    subsets.push(chars);
+                }
+                if (hasNumbers) {
+                    let chars = NUMS;
+                    if (filterAmbiguity) {
+                        chars = chars.split('').filter(c => !AMBIGUOUS.includes(c)).join('');
+                    }
+                    mergedPool += chars;
+                    subsets.push(chars);
+                }
+                if (hasSymbols) {
+                    let chars = SAFE_SYMBOLS + EXT_SYMBOLS;
+                    if (filterAmbiguity) {
+                        chars = chars.split('').filter(c => !AMBIGUOUS.includes(c)).join('');
+                    }
+                    mergedPool += chars;
+                    subsets.push(chars);
+                }
+
+                if (mergedPool.length === 0) {
+                    mergedPool = LOWER + UPPER + NUMS;
+                    subsets.push(LOWER);
+                }
+
+                /* Enforce dynamic mathematical repetition caps to prevent subset saturation */
+                const charCounts = {}; 
+                const maxRepetitionLimit = Math.ceil(len / mergedPool.length);
+
+                const buildPassword = [];
+
+                /* Enforce representation of at least one token from each selected class */
+                subsets.forEach(pool => {
+                    if (pool.length > 0) {
+                        const char = getRandomChar(pool);
+                        buildPassword.push(char);
+                        charCounts[char] = (charCounts[char] || 0) + 1;
+                    }
+                });
+
+                /* Densely pack the rest of the array limits under strict repetition calculations */
+                while (buildPassword.length < len) {
+                    let validPool = "";
+                    for (let i = 0; i < mergedPool.length; i++) {
+                        const char = mergedPool.charAt(i);
+                        if ((charCounts[char] || 0) < maxRepetitionLimit) {
+                            validPool += char;
+                        }
+                    }
+
+                    if (validPool.length === 0) {
+                        validPool = mergedPool;
+                    }
+
+                    const chosenChar = getRandomChar(validPool);
+                    buildPassword.push(chosenChar);
+                    charCounts[chosenChar] = (charCounts[chosenChar] || 0) + 1;
+                }
+
+                /* Run clean swaps over the sequence to eradicate direct repetitive pairs (e.g. "aa", "77") */
+                let finalShuffled = secureShuffle(buildPassword);
+                
+                if (mergedPool.length > 1) {
+                    for (let attempt = 0; attempt < 10; attempt++) {
+                        let resolved = true;
+                        for (let i = 0; i < finalShuffled.length - 1; i++) {
+                            if (finalShuffled[i] === finalShuffled[i+1]) {
+                                let swapIdx = -1;
+                                for (let j = i + 2; j < finalShuffled.length; j++) {
+                                    if (finalShuffled[j] !== finalShuffled[i]) {
+                                        swapIdx = j;
+                                        break;
+                                    }
+                                }
+                                if (swapIdx === -1) {
+                                    for (let j = 0; j < i; j++) {
+                                        if (finalShuffled[j] !== finalShuffled[i] && (j === 0 || finalShuffled[j-1] !== finalShuffled[i])) {
+                                            swapIdx = j;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if (swapIdx !== -1) {
+                                    const temp = finalShuffled[i+1];
+                                    finalShuffled[i+1] = finalShuffled[swapIdx];
+                                    finalShuffled[swapIdx] = temp;
+                                } else {
+                                    resolved = false;
+                                }
+                            }
+                        }
+                        if (resolved) break;
+                    }
+                }
+
+                return finalShuffled.join('');
+            }
+
+            function generate() {
+                if (isPromoActive) return;
+
+                let password = "";
+                
+                if (currentMode === 'legacy') {
+                    password = generateLegacyPassword();
+                } else if (currentMode === 'standard') {
+                    password = generateStandardPassword();
+                } else if (currentMode === 'recommend') {
+                    password = generateRecommendPassword();
+                } else if (currentMode === 'custom') {
+                    password = generateCustomPassword();
+                }
+
+                passwordInput.value = password;
+                passwordInput.scrollLeft = 0;
+
+                displayWrapper.classList.add('pulse');
+                setTimeout(() => displayWrapper.classList.remove('pulse'), 150);
+            }
+
+            function showToast(text, type = "info") {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `custom-toast ${type}`;
+                
+                let iconClass = "fa-circle-info";
+                if (type === "success") iconClass = "fa-circle-check";
+                if (type === "error") iconClass = "fa-circle-exclamation";
+
+                toast.innerHTML = `<i class="fas ${iconClass}"></i> ${text}`;
+                container.appendChild(toast);
+
+                setTimeout(() => toast.classList.add('visible'), 50);
+
+                setTimeout(() => {
+                    toast.classList.remove('visible');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3200);
+            }
+
+            function showPromoWidget() {
+                isPromoActive = true;
+                promoCard.classList.add('visible');
+                mypassApp.classList.add('promo-locked');
+                copyrightFooter.classList.add('promo-locked');
+            }
+
+            function hidePromoWidget() {
+                isPromoActive = false;
+                promoCard.classList.remove('visible');
+                mypassApp.classList.remove('promo-locked');
+                copyrightFooter.classList.remove('promo-locked');
+            }
+
+            function validateCheckboxStates(changedElement) {
+                const list = [cbUpper, cbLower, cbNumbers, cbSymbols];
+                const checkedCount = list.filter(cb => cb.checked).length;
+
+                if (checkedCount < 2) {
+                    changedElement.checked = true;
+                    showToast("At least 2 character types must remain selected.", "error");
+                } else {
+                    generate();
+                }
+            }
+
+            function handleTabSwitch(tabName) {
+                if (isPromoActive) return;
+                if (currentMode === tabName) return; 
+                
+                currentMode = tabName;
+
+                Object.keys(tabs).forEach(key => {
+                    if (key === tabName) {
+                        tabs[key].classList.add('active');
+                    } else {
+                        tabs[key].classList.remove('active');
+                    }
+                });
+
+                if (currentMode === 'custom') {
+                    customizerPanel.classList.add('visible');
+                } else {
+                    customizerPanel.classList.remove('visible');
+                }
+
+                generate();
+            }
+
+            function handleClipboardCopy() {
+                if (!passwordInput.value) return;
+                
+                passwordInput.select();
+                passwordInput.setSelectionRange(0, 99999);
+
+                try {
+                    const copiedSuccessfully = document.execCommand('copy');
+                    if (copiedSuccessfully) {
+                        showToast("Copied to clipboard successfully!", "success");
+                        setTimeout(() => {
+                            showPromoWidget();
+                        }, 400);
+                    } else {
+                        showToast("Please copy manually.", "error");
+                    }
+                } catch (err) {
+                    showToast("Clipboard access denied.", "error");
+                }
+            }
+
+            let dragOriginating = false;
+            let cursorOriginX;
+            let viewportOffsetScroll;
+
+            passwordInput.addEventListener('mousedown', (e) => {
+                if (isPromoActive) return;
+                dragOriginating = true;
+                passwordInput.classList.add('grabbing');
+                cursorOriginX = e.pageX - passwordInput.offsetLeft;
+                viewportOffsetScroll = passwordInput.scrollLeft;
+            });
+
+            window.addEventListener('mouseup', () => {
+                dragOriginating = false;
+                passwordInput.classList.remove('grabbing');
+            });
+
+            passwordInput.addEventListener('mousemove', (e) => {
+                if (!dragOriginating || isPromoActive) return;
+                
+                e.preventDefault();
+                window.getSelection().removeAllRanges();
+                
+                const x = e.pageX - passwordInput.offsetLeft;
+                const offsetShift = (x - cursorOriginX) * 1.5;
+                passwordInput.scrollLeft = viewportOffsetScroll - offsetShift;
+            });
+
+            passwordInput.addEventListener('touchstart', (e) => {
+                if (isPromoActive) return;
+                dragOriginating = true;
+                cursorOriginX = e.touches[0].pageX - passwordInput.offsetLeft;
+                viewportOffsetScroll = passwordInput.scrollLeft;
+            });
+
+            window.addEventListener('touchend', () => {
+                dragOriginating = false;
+            });
+
+            passwordInput.addEventListener('touchmove', (e) => {
+                if (!dragOriginating || isPromoActive) return;
+                const x = e.touches[0].pageX - passwordInput.offsetLeft;
+                const offsetShift = (x - cursorOriginX) * 1.5;
+                passwordInput.scrollLeft = viewportOffsetScroll - offsetShift;
+            });
+
+            tabs.legacy.addEventListener('click', () => handleTabSwitch('legacy'));
+            tabs.standard.addEventListener('click', () => handleTabSwitch('standard'));
+            tabs.recommend.addEventListener('click', () => handleTabSwitch('recommend'));
+            tabs.custom.addEventListener('click', () => handleTabSwitch('custom'));
+
+            btnRefresh.addEventListener('click', () => {
+                if (isPromoActive) return;
+                generate();
+                btnRefresh.style.transform = 'rotate(180deg)';
+                setTimeout(() => btnRefresh.style.transform = 'rotate(0deg)', 220);
+            });
+            btnCopy.addEventListener('click', handleClipboardCopy);
+
+            lengthSlider.addEventListener('input', (e) => {
+                lengthVal.textContent = e.target.value;
+                generate();
+            });
+
+            cbUpper.addEventListener('change', () => validateCheckboxStates(cbUpper));
+            cbLower.addEventListener('change', () => validateCheckboxStates(cbLower));
+            cbNumbers.addEventListener('change', () => validateCheckboxStates(cbNumbers));
+            cbSymbols.addEventListener('change', () => validateCheckboxStates(cbSymbols));
+            cbAmbiguous.addEventListener('change', generate);
+
+            promoClose.addEventListener('click', (e) => {
+                e.stopPropagation();
+                hidePromoWidget();
+            });
+
+            document.addEventListener('click', (e) => {
+                if (isPromoActive) {
+                    if (!promoCard.contains(e.target) && !btnCopy.contains(e.target)) {
+                        hidePromoWidget();
+                    }
+                }
+            });
+
+            document.addEventListener('keyup', (e) => {
+                if (isPromoActive) return;
+                const targetTag = document.activeElement.tagName.toLowerCase();
+                if (targetTag !== 'input' && targetTag !== 'textarea') {
+                    if (e.key === 'r' || e.key === 'R') {
+                        generate();
+                        btnRefresh.style.transform = 'rotate(180deg)';
+                        setTimeout(() => btnRefresh.style.transform = 'rotate(0deg)', 220);
+                    }
+                }
+            });
+
+            generate();
+        });
+    </script>
+</body>
+</html>
