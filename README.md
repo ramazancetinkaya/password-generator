@@ -108,7 +108,7 @@ This is a standard frontend project, so you can run it directly in your web brow
 2. Locate the `index.html` file.
 3. **Double-click** the `index.html` file to launch it in your default web browser.
 
-*Alternative Method:* You can also drag and drop the `index.html` file directly into any open browser tab (Chrome, Firefox, Safari, Edge, etc.).
+*Alternative Method:* You can also drag and drop the `index.html` file directly into any open browser tab (Chrome, Edge, Firefox, Safari, etc.).
 
 ## Browser Compatibility
 
