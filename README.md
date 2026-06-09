@@ -114,9 +114,9 @@ This is a standard frontend project, so you can run it directly in your web brow
 
 Tested and working on:
 - Chrome (latest)
+- Edge (latest)
 - Firefox (latest)
 - Safari (latest)
-- Edge (latest)
 - Mobile browsers (iOS Safari, Android Chrome)
 
 ## Contributing
@@ -130,3 +130,5 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contact
 
 Whether you need to report an issue, propose a new feature, require setup and integration guidance, or submit a security disclosure, please reach out directly:
+
+📧 **Contact Email**: `ramazancetinkayasolutions@protonmail.com`
